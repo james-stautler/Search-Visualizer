@@ -3,8 +3,16 @@
 
 #include "tile.h"
 #include "button.h"
+#include "tileCollection.h"
 
 using namespace std;
+
+enum Selection {
+    NO_SELECTION,
+    START_TILE,
+    GOAL_TILE,
+    BLOCKER_TILE
+};
 
 int main() {
 
@@ -14,12 +22,18 @@ int main() {
         exit(-1);
     }
 
+    Selection currentSelection = NO_SELECTION;
 
     int SCREEN_WIDTH = 1200;
     int SCREEN_HEIGHT = 800;
 
+    int TILE_SIZE = 20;
+
     int BUTTON_HEIGHT = 30;
     int BUTTON_WIDTH = 150;
+
+    int BUTTON_X = 25;
+    int BUTTON_Y = 300;
 
     int FONT_SIZE = 15;
 
@@ -27,6 +41,9 @@ int main() {
     sf::Color GRAY = sf::Color(128, 128, 128);
     sf::Color BLACK = sf::Color(0,0,0);
     sf::Color BLUE = sf::Color::Blue;
+
+    sf::Color START_TILE_COLOR = BLUE;
+    sf::Color GOAL_TILE_COLOR = BLUE;
 
     string START_TILE_TEXT = "Start Tile";
     string GOAL_TILE_TEXT = "Goal Tile";
@@ -36,12 +53,14 @@ int main() {
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SEARCH VISUALIZER");
     
-    button* currentlySelected;
-    button startTileButton(25, 300, BUTTON_WIDTH, BUTTON_HEIGHT, START_TILE_TEXT, WHITE, GRAY);
-    button goalTileButton(25, 340, BUTTON_WIDTH, BUTTON_HEIGHT, GOAL_TILE_TEXT, WHITE, GRAY);
-    button blockerTileButton(25, 380, BUTTON_WIDTH, BUTTON_HEIGHT, BLOCKER_TILE_TEXT, WHITE, GRAY);
-    button randomBlockerButton(25, 420, BUTTON_WIDTH, BUTTON_HEIGHT, RANDOM_BLOCKER_TEXT, WHITE, GRAY);
-    button searchButton(25, 460, BUTTON_WIDTH, BUTTON_HEIGHT, SEARCH_TEXT, WHITE, GRAY);
+    button* currentButtonSelection;
+    button startTileButton(BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, START_TILE_TEXT, WHITE, GRAY);
+    button goalTileButton(BUTTON_X, BUTTON_Y + 40, BUTTON_WIDTH, BUTTON_HEIGHT, GOAL_TILE_TEXT, WHITE, GRAY);
+    button blockerTileButton(BUTTON_X, BUTTON_Y + 80, BUTTON_WIDTH, BUTTON_HEIGHT, BLOCKER_TILE_TEXT, WHITE, GRAY);
+    button randomBlockerButton(BUTTON_X, BUTTON_Y + 120, BUTTON_WIDTH, BUTTON_HEIGHT, RANDOM_BLOCKER_TEXT, WHITE, GRAY);
+    button searchButton(BUTTON_X, BUTTON_Y + 160, BUTTON_WIDTH, BUTTON_HEIGHT, SEARCH_TEXT, WHITE, GRAY);
+
+    tileCollection* tiles = new tileCollection(TILE_SIZE);
 
     while (window.isOpen())
     {
@@ -56,24 +75,27 @@ int main() {
                 sf::Vector2i position = sf::Mouse::getPosition(window);
                 if (startTileButton.inBounds(position.x, position.y)) {
                     startTileButton.changeState();
-                    if (!(currentlySelected == nullptr)) {
-                        currentlySelected->changeState();
+                    if (!(currentButtonSelection == nullptr)) {
+                        currentButtonSelection->changeState();
                     }
-                    currentlySelected = &startTileButton;
+                    currentButtonSelection = &startTileButton;
+                    currentSelection = START_TILE;
                 }
                 if (goalTileButton.inBounds(position.x, position.y)) {
                     goalTileButton.changeState();
-                    if (!(currentlySelected == nullptr)) {
-                        currentlySelected->changeState();
+                    if (!(currentButtonSelection == nullptr)) {
+                        currentButtonSelection->changeState();
                     }
-                    currentlySelected = &goalTileButton;
+                    currentButtonSelection = &goalTileButton;
+                    currentSelection = GOAL_TILE;
                 }
                 if (blockerTileButton.inBounds(position.x, position.y)) {
                     blockerTileButton.changeState();
-                    if (!(currentlySelected == nullptr)) {
-                        currentlySelected->changeState();
+                    if (!(currentButtonSelection == nullptr)) {
+                        currentButtonSelection->changeState();
                     }
-                    currentlySelected = &blockerTileButton;
+                    currentButtonSelection = &blockerTileButton;
+                    currentSelection = BLOCKER_TILE;
                 }
                 if (randomBlockerButton.inBounds(position.x, position.y)) {
                     randomBlockerButton.changeState();
@@ -81,7 +103,19 @@ int main() {
                 if (searchButton.inBounds(position.x, position.y)) {
                     searchButton.changeState();
                 }
+
+                // TODO: round coordinate and check map for color change
+                if (position.x >= 200) {
+                    tile* selectedTile = tiles->tileInCoordinate(position.x, position.y, TILE_SIZE);
+                    if (currentSelection == START_TILE) {
+                        selectedTile->setColor(START_TILE_COLOR);
+                    }
+                    if (currentSelection == GOAL_TILE) {
+                        selectedTile->setColor(GOAL_TILE_COLOR);
+                    }
+                }
             }
+
         }
 
         sf::RectangleShape startTileButtonRect = startTileButton.getButton();
@@ -109,6 +143,12 @@ int main() {
         window.draw(blockerTileText);
         window.draw(randomBlockerText);
         window.draw(searchText);
+
+        for (int i = 0; i < tiles->getTiles().size(); i++) {
+            for (int j = 0; j < tiles->getTiles().at(i).size(); j++) {
+                window.draw(tiles->getTiles().at(i).at(j)->tileRectangle());
+            }
+        }
 
         window.display();
 

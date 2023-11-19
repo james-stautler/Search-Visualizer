@@ -1,3 +1,6 @@
+#ifndef BUTTON_H
+#define BUTTON_H
+
 #include <string>
 
 #include <SFML/Graphics/Color.hpp>
@@ -32,3 +35,5 @@ class button {
         sf::Text getText(sf::Font &font, sf::Color color, int fontSize);
         
 };
+
+#endif

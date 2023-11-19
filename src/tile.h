@@ -1,4 +1,8 @@
-#include <sfml/Graphics/Color.hpp>
+#ifndef TILE_H
+#define TILE_H
+
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/RectangleShape.hpp>
 
 class tile {
 
@@ -10,12 +14,15 @@ class tile {
         sf::Color color;
     
     public:
-        // Constructors
         tile(int x, int y, int width, int height, sf::Color color);
-        // Getters
+
         sf::Color getColor();
-        // Setters
+        int getX();
+        int getY();
+
         void setColor(sf::Color color);
-        // Misc
+        sf::RectangleShape tileRectangle();
 
 };
+
+#endif
