@@ -9,7 +9,7 @@ tile::tile(int x, int y, int width, int height, sf::Color color) {
     this->color = color;
 }
 
-void tile::setColor(sf::Color) {
+void tile::setColor(sf::Color color) {
     this->color = color;
 }
 

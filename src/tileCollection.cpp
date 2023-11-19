@@ -25,7 +25,36 @@ std::vector<std::vector<tile*> > tileCollection::getTiles() {
 
 tile* tileCollection::tileInCoordinate(int x, int y, int tileSize) {
     tile* tile;
-    int row = floor((x - 200) / tileSize);
-    int col = floor(y / tileSize); 
+    int col = floor((x - 200) / tileSize);
+    int row = floor(y / tileSize); 
     return tiles.at(row).at(col);
+}
+
+void tileCollection::randomize(int threshold) {
+    for (int i = 0; i < tiles.size(); i++) {
+        for (int j = 0; j < tiles.at(i).size(); j++) {
+            int n = rand() % 100 + 1;
+            if (n > threshold && tiles.at(i).at(j)->getColor() == sf::Color::White) {
+                tiles.at(i).at(j)->setColor(sf::Color::Black);
+            }
+        }
+    }
+}
+
+void tileCollection::clear() {
+    for (int i = 0; i < tiles.size(); i++) {
+        for (int j = 0; j < tiles.at(i).size(); j++) {
+            tiles.at(i).at(j)->setColor(sf::Color::White);
+        }
+    }
+}
+
+void tileCollection::clearBlockers() {
+    for (int i = 0; i < tiles.size(); i++) {
+        for (int j = 0; j < tiles.at(i).size(); j++) {
+            if (tiles.at(i).at(j)->getColor() == sf::Color::Black) {
+                tiles.at(i).at(j)->setColor(sf::Color::White);
+            }
+        }
+    }
 }

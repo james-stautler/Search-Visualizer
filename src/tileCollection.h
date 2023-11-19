@@ -12,6 +12,9 @@ class tileCollection {
         tileCollection(int tileSize);
         std::vector<std::vector<tile*> > getTiles();
         tile* tileInCoordinate(int x, int y, int tileSize); 
+        void randomize(int threshold);
+        void clear();
+        void clearBlockers();
 };
 
 #endif 
