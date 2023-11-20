@@ -22,7 +22,8 @@ enum Selection {
 enum Algorithm {
     NONE,
     ASTAR,
-    BFS
+    BFS,
+    DFS
 };
 
 int main() {
@@ -73,10 +74,11 @@ int main() {
     string CLEAR_TEXT = "CLEAR";
     string ASTAR_TEXT = "A* SEARCH";
     string BFS_TEXT = "BFS";
+    string DFS_TEXT = "DFS";
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SEARCH VISUALIZER");
     
-    button* currentButtonSelection;
+    button* currentButtonSelection = nullptr;
     button startTileButton(BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, START_TILE_TEXT, WHITE, GRAY);
     button goalTileButton(BUTTON_X, BUTTON_Y + 40, BUTTON_WIDTH, BUTTON_HEIGHT, GOAL_TILE_TEXT, WHITE, GRAY);
     button blockerTileButton(BUTTON_X, BUTTON_Y + 80, BUTTON_WIDTH, BUTTON_HEIGHT, BLOCKER_TILE_TEXT, WHITE, GRAY);
@@ -85,9 +87,10 @@ int main() {
     button clearButton(BUTTON_X, BUTTON_Y + 200, BUTTON_WIDTH, BUTTON_HEIGHT, CLEAR_TEXT, WHITE, GRAY);
     button searchButton(BUTTON_X, BUTTON_Y + 240, BUTTON_WIDTH, BUTTON_HEIGHT, SEARCH_TEXT, WHITE, GRAY);
 
-    button* algorithmButtonSelection;
+    button* algorithmButtonSelection = nullptr;
     button astarButton(ALGORITHM_BUTTON_X, ALGORITHM_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, ASTAR_TEXT, WHITE, GRAY);
     button BFSButton(ALGORITHM_BUTTON_X, ALGORITHM_BUTTON_Y + 40, BUTTON_WIDTH, BUTTON_HEIGHT, BFS_TEXT, WHITE, GRAY);
+    button DFSButton(ALGORITHM_BUTTON_X, ALGORITHM_BUTTON_Y + 80, BUTTON_WIDTH, BUTTON_HEIGHT, DFS_TEXT, WHITE, GRAY);
 
     vector<button> buttons;
     buttons.push_back(startTileButton);
@@ -99,6 +102,7 @@ int main() {
     buttons.push_back(searchButton);
     buttons.push_back(astarButton);
     buttons.push_back(BFSButton);
+    buttons.push_back(DFSButton);
 
     tileCollection* tiles = new tileCollection(TILE_SIZE);
     tile* startTile = nullptr;
@@ -117,7 +121,6 @@ int main() {
 
             if (event.type == sf::Event::MouseButtonPressed) {
                 sf::Vector2i position = sf::Mouse::getPosition(window);
-
                 if (startTileButton.inBounds(position.x, position.y)) {
                     startTileButton.changeState();
                     if (!(currentButtonSelection == nullptr)) {
@@ -202,6 +205,15 @@ int main() {
                     currentAlgorithm = BFS;
                 }
 
+                if (DFSButton.inBounds(position.x, position.y)) {
+                    DFSButton.changeState();
+                    if (!(algorithmButtonSelection == nullptr)) {
+                        algorithmButtonSelection->changeState();
+                    }
+                    algorithmButtonSelection = &DFSButton;
+                    currentAlgorithm = DFS;
+                }
+
                 if (position.x >= 200) {
                     tile* selectedTile = tiles->tileInCoordinate(position.x, position.y, TILE_SIZE);
                     if (currentSelection == START_TILE && selectedTile->getColor() == BLANK_TILE_COLOR) {
@@ -244,6 +256,7 @@ int main() {
         displayButtons.push_back(searchButton.getButton());
         displayButtons.push_back(astarButton.getButton());
         displayButtons.push_back(BFSButton.getButton());
+        displayButtons.push_back(DFSButton.getButton());
 
         vector<sf::Text> buttonText;
         buttonText.push_back(startTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
@@ -255,6 +268,7 @@ int main() {
         buttonText.push_back(searchButton.getText(ARIAL_FONT, BLUE, FONT_SIZE));
         buttonText.push_back(astarButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
         buttonText.push_back(BFSButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(DFSButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
 
         window.clear(WHITE);
 
@@ -293,6 +307,25 @@ int main() {
 
                 if (currentAlgorithm == BFS) {
                     node* finalNode = algorithmHandler.BFS(window, startTile, goalTile);
+                    if (finalNode != nullptr) {
+                        algorithmHandler.displayPath(window, finalNode);
+                    } else {
+                        algorithmHandler.displayFail(window);
+                        startTile->setColor(START_TILE_COLOR);
+                        goalTile->setColor(GOAL_TILE_COLOR);
+                        window.display();
+                    }
+                    startTile = nullptr;
+                    goalTile = nullptr;
+
+                    currentButtonSelection->changeState();
+                    currentSelection = NO_SELECTION;
+                    currentButtonSelection = nullptr;
+                    window.display();
+                }
+
+                if (currentAlgorithm == DFS) {
+                    node* finalNode = algorithmHandler.DFS(window, startTile, goalTile);
                     if (finalNode != nullptr) {
                         algorithmHandler.displayPath(window, finalNode);
                     } else {

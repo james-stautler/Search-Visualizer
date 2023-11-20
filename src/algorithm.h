@@ -7,6 +7,7 @@
 #include <set>
 #include <chrono>
 #include <thread>
+#include <stack>
 
 #include "tileCollection.h"
 #include "node.h"
@@ -21,6 +22,7 @@ class algorithm {
         algorithm(tileCollection* tiles, int tileSize, int screenWidth, int screen);
         node* Astar(sf::RenderWindow& window, tile* startTile, tile* goalTile);
         node* BFS(sf::RenderWindow& window, tile* startTile, tile* goalTile);
+        node* DFS(sf::RenderWindow& window, tile* startTile, tile* goalTile);
         void displayPath(sf::RenderWindow& window, node* finalNode);
         void displayFail(sf::RenderWindow& window);
 };
