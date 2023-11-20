@@ -31,6 +31,7 @@ node* algorithm::Astar(sf::RenderWindow& window, tile* startTile, tile* goalTile
             continue;
         }
         curr->getTile()->setColor(sf::Color(255, 20, 147));
+        window.clear(sf::Color::White);
         tiles->drawTiles(window);
         window.display();
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -41,7 +42,38 @@ node* algorithm::Astar(sf::RenderWindow& window, tile* startTile, tile* goalTile
         }
     }
     return nullptr;
-};
+}
+
+node* algorithm::BFS(sf::RenderWindow& window, tile* startTile, tile* goalTile) {
+    std::set<tile*> visited;
+    std::queue<node*> q;
+    q.push(new node(startTile, goalTile));
+    while (!q.empty()) {
+        node* curr = q.front();
+        q.pop();
+        if (curr->getTile() == goalTile) {
+            return curr;
+        }
+        if (visited.find(curr->getTile()) != visited.cend()) {
+            continue;
+        }
+        if (curr->getTile()->getColor() == sf::Color::Black) {
+            visited.insert(curr->getTile());
+            continue;
+        }
+        curr->getTile()->setColor(sf::Color(255, 20, 147));
+        window.clear(sf::Color::White);
+        tiles->drawTiles(window);
+        window.display();
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        visited.insert(curr->getTile());
+        std::vector<tile*> neighbors = tiles->getNeighbors(curr->getTile(), tileSize, screenWidth, screenHeight);
+        for (int i = 0; i < neighbors.size(); i++) {
+            q.push(new node(neighbors.at(i), curr, goalTile));
+        }
+    }
+    return nullptr;
+}
 
 void algorithm::displayPath(sf::RenderWindow& window, node* finalNode) {
     node* curr = finalNode->getParent();

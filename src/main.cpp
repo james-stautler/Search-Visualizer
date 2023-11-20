@@ -19,6 +19,12 @@ enum Selection {
     SEARCH
 };
 
+enum Algorithm {
+    NONE,
+    ASTAR,
+    BFS
+};
+
 int main() {
 
     sf::Font ARIAL_FONT;
@@ -28,6 +34,7 @@ int main() {
     }
 
     Selection currentSelection = NO_SELECTION;
+    Algorithm currentAlgorithm = NONE;
 
     int SCREEN_WIDTH = 1200;
     int SCREEN_HEIGHT = 800;
@@ -39,6 +46,9 @@ int main() {
 
     int BUTTON_X = 25;
     int BUTTON_Y = 25;
+
+    int ALGORITHM_BUTTON_X = 25;
+    int ALGORITHM_BUTTON_Y = 600;
 
     int FONT_SIZE = 15;
 
@@ -61,6 +71,8 @@ int main() {
     string SEARCH_TEXT = "Search";
     string ERASE_TEXT = "Erase";
     string CLEAR_TEXT = "CLEAR";
+    string ASTAR_TEXT = "A* SEARCH";
+    string BFS_TEXT = "BFS";
 
     sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "SEARCH VISUALIZER");
     
@@ -73,6 +85,10 @@ int main() {
     button clearButton(BUTTON_X, BUTTON_Y + 200, BUTTON_WIDTH, BUTTON_HEIGHT, CLEAR_TEXT, WHITE, GRAY);
     button searchButton(BUTTON_X, BUTTON_Y + 240, BUTTON_WIDTH, BUTTON_HEIGHT, SEARCH_TEXT, WHITE, GRAY);
 
+    button* algorithmButtonSelection;
+    button astarButton(ALGORITHM_BUTTON_X, ALGORITHM_BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT, ASTAR_TEXT, WHITE, GRAY);
+    button BFSButton(ALGORITHM_BUTTON_X, ALGORITHM_BUTTON_Y + 40, BUTTON_WIDTH, BUTTON_HEIGHT, BFS_TEXT, WHITE, GRAY);
+
     vector<button> buttons;
     buttons.push_back(startTileButton);
     buttons.push_back(goalTileButton);
@@ -81,6 +97,8 @@ int main() {
     buttons.push_back(eraseButton);
     buttons.push_back(clearButton);
     buttons.push_back(searchButton);
+    buttons.push_back(astarButton);
+    buttons.push_back(BFSButton);
 
     tileCollection* tiles = new tileCollection(TILE_SIZE);
     tile* startTile = nullptr;
@@ -157,11 +175,31 @@ int main() {
                     currentSelection = RANDOM;
                 }
 
-                if (searchButton.inBounds(position.x, position.y)) {
+                if (searchButton.inBounds(position.x, position.y) && currentAlgorithm != NONE) {
+                    searchButton.changeState();
                     if (!(currentButtonSelection == nullptr)) {
                         currentButtonSelection->changeState();
                     }
+                    currentButtonSelection = &searchButton;
                     currentSelection = SEARCH;
+                }
+
+                if (astarButton.inBounds(position.x, position.y)) {
+                    astarButton.changeState();
+                    if (!(algorithmButtonSelection == nullptr)) {
+                        algorithmButtonSelection->changeState();
+                    }
+                    algorithmButtonSelection = &astarButton;
+                    currentAlgorithm = ASTAR;
+                }
+
+                if (BFSButton.inBounds(position.x, position.y)) {
+                    BFSButton.changeState();
+                    if (!(algorithmButtonSelection == nullptr)) {
+                        algorithmButtonSelection->changeState();
+                    }
+                    algorithmButtonSelection = &BFSButton;
+                    currentAlgorithm = BFS;
                 }
 
                 if (position.x >= 200) {
@@ -204,6 +242,8 @@ int main() {
         displayButtons.push_back(eraseButton.getButton());
         displayButtons.push_back(clearButton.getButton());
         displayButtons.push_back(searchButton.getButton());
+        displayButtons.push_back(astarButton.getButton());
+        displayButtons.push_back(BFSButton.getButton());
 
         vector<sf::Text> buttonText;
         buttonText.push_back(startTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
@@ -213,6 +253,8 @@ int main() {
         buttonText.push_back(eraseButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
         buttonText.push_back(clearButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
         buttonText.push_back(searchButton.getText(ARIAL_FONT, BLUE, FONT_SIZE));
+        buttonText.push_back(astarButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(BFSButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
 
         window.clear(WHITE);
 
@@ -230,29 +272,49 @@ int main() {
             window.display();
         } else {
             if (startTile != nullptr && goalTile != nullptr) {
-                
-                node* finalNode = algorithmHandler.Astar(window, startTile, goalTile);
-                if (finalNode != nullptr) {
-                    algorithmHandler.displayPath(window, finalNode);
-                } else {
-                    algorithmHandler.displayFail(window);
-                    startTile->setColor(START_TILE_COLOR);
-                    goalTile->setColor(GOAL_TILE_COLOR);
+                if (currentAlgorithm == ASTAR) {
+                    node* finalNode = algorithmHandler.Astar(window, startTile, goalTile);
+                    if (finalNode != nullptr) {
+                        algorithmHandler.displayPath(window, finalNode);
+                    } else {
+                        algorithmHandler.displayFail(window);
+                        startTile->setColor(START_TILE_COLOR);
+                        goalTile->setColor(GOAL_TILE_COLOR);
+                        window.display();
+                    }
+                    startTile = nullptr;
+                    goalTile = nullptr;
+
+                    currentButtonSelection->changeState();
+                    currentSelection = NO_SELECTION;
+                    currentButtonSelection = nullptr;
                     window.display();
                 }
 
-                startTile = nullptr;
-                goalTile = nullptr;
+                if (currentAlgorithm == BFS) {
+                    node* finalNode = algorithmHandler.BFS(window, startTile, goalTile);
+                    if (finalNode != nullptr) {
+                        algorithmHandler.displayPath(window, finalNode);
+                    } else {
+                        algorithmHandler.displayFail(window);
+                        startTile->setColor(START_TILE_COLOR);
+                        goalTile->setColor(GOAL_TILE_COLOR);
+                        window.display();
+                    }
+                    startTile = nullptr;
+                    goalTile = nullptr;
 
-                for (int i = 0; i < buttons.size(); i++) {
-                    buttons.at(i).setColor(WHITE);
-                    window.draw(buttons.at(i).getButton());
-                    window.draw(buttonText.at(i));
+                    currentButtonSelection->changeState();
+                    currentSelection = NO_SELECTION;
+                    currentButtonSelection = nullptr;
+                    window.display();
                 }
-                window.clear(WHITE);
-                window.display();
+
+            } else {
+                currentButtonSelection->changeState();
                 currentSelection = NO_SELECTION;
                 currentButtonSelection = nullptr;
+                window.display();
             }
             
         }
