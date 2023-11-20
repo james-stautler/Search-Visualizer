@@ -1,7 +1,9 @@
 #ifndef TILE_COLLECTION_H
 #define TILE_COLLECTION_H
 
+#include <SFML/Graphics.hpp>
 #include "tile.h"
+#include <vector>
 
 
 class tileCollection {
@@ -15,6 +17,8 @@ class tileCollection {
         void randomize(int threshold);
         void clear();
         void clearBlockers();
+        void drawTiles(sf::RenderWindow& window);
+        std::vector<tile*> getNeighbors(tile* currTile, int tileSize, int screenWidth, int screenHeight);
 };
 
 #endif 

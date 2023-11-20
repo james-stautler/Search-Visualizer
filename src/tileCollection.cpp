@@ -58,3 +58,32 @@ void tileCollection::clearBlockers() {
         }
     }
 }
+
+void tileCollection::drawTiles(sf::RenderWindow& window) {
+    for (int i = 0; i < tiles.size(); i++) {
+        for (int j = 0; j < tiles.at(i).size(); j++) {
+                window.draw(tiles.at(i).at(j)->tileRectangle());
+        }   
+    }
+}
+
+std::vector<tile*> tileCollection::getNeighbors(tile* currTile, int tileSize, int screenWidth, int screenHeight) {
+    std::vector<tile*> neighbors;
+    int x = currTile->getX();
+    int y = currTile->getY();
+    if (x + tileSize < screenWidth) {
+        neighbors.push_back(tileInCoordinate(x + tileSize, y, tileSize));
+    }
+    if (x - tileSize >= 200) {
+        neighbors.push_back(tileInCoordinate(x - tileSize, y, tileSize));
+    }
+    if (y + tileSize < screenHeight) {
+        neighbors.push_back(tileInCoordinate(x, y + tileSize, tileSize));
+    }
+    if (y - tileSize >= 0) {
+        neighbors.push_back(tileInCoordinate(x, y - tileSize, tileSize));
+    }
+
+    return neighbors;
+
+}

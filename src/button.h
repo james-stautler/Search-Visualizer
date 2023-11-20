@@ -27,6 +27,7 @@ class button {
         
         void changeState();
         void setText(string text);
+        void setColor(sf::Color color);
         
         bool getState();
         

@@ -4,6 +4,7 @@
 #include "tile.h"
 #include "button.h"
 #include "tileCollection.h"
+#include "algorithm.h"
 
 using namespace std;
 
@@ -14,7 +15,8 @@ enum Selection {
     BLOCKER_TILE,
     ERASE,
     CLEAR,
-    RANDOM
+    RANDOM,
+    SEARCH
 };
 
 int main() {
@@ -36,7 +38,7 @@ int main() {
     int BUTTON_WIDTH = 150;
 
     int BUTTON_X = 25;
-    int BUTTON_Y = 250;
+    int BUTTON_Y = 25;
 
     int FONT_SIZE = 15;
 
@@ -71,9 +73,20 @@ int main() {
     button clearButton(BUTTON_X, BUTTON_Y + 200, BUTTON_WIDTH, BUTTON_HEIGHT, CLEAR_TEXT, WHITE, GRAY);
     button searchButton(BUTTON_X, BUTTON_Y + 240, BUTTON_WIDTH, BUTTON_HEIGHT, SEARCH_TEXT, WHITE, GRAY);
 
+    vector<button> buttons;
+    buttons.push_back(startTileButton);
+    buttons.push_back(goalTileButton);
+    buttons.push_back(blockerTileButton);
+    buttons.push_back(randomBlockerButton);
+    buttons.push_back(eraseButton);
+    buttons.push_back(clearButton);
+    buttons.push_back(searchButton);
+
     tileCollection* tiles = new tileCollection(TILE_SIZE);
     tile* startTile = nullptr;
     tile* goalTile = nullptr;
+
+    algorithm algorithmHandler(tiles, TILE_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT);
 
     while (window.isOpen())
     {
@@ -145,7 +158,10 @@ int main() {
                 }
 
                 if (searchButton.inBounds(position.x, position.y)) {
-                    searchButton.changeState();
+                    if (!(currentButtonSelection == nullptr)) {
+                        currentButtonSelection->changeState();
+                    }
+                    currentSelection = SEARCH;
                 }
 
                 if (position.x >= 200) {
@@ -180,48 +196,66 @@ int main() {
 
         }
 
-        sf::RectangleShape startTileButtonRect = startTileButton.getButton();
-        sf::RectangleShape goalTileButtonRect = goalTileButton.getButton();
-        sf::RectangleShape blockerTileButtonRect = blockerTileButton.getButton();
-        sf::RectangleShape randomBlockerButtonRect = randomBlockerButton.getButton();
-        sf::RectangleShape eraseButtonRect = eraseButton.getButton();
-        sf::RectangleShape clearButtonRect = clearButton.getButton();
-        sf::RectangleShape searchButtonRect = searchButton.getButton();
-        
+        vector<sf::RectangleShape> displayButtons;
+        displayButtons.push_back(startTileButton.getButton());
+        displayButtons.push_back(goalTileButton.getButton());
+        displayButtons.push_back(blockerTileButton.getButton());
+        displayButtons.push_back(randomBlockerButton.getButton());
+        displayButtons.push_back(eraseButton.getButton());
+        displayButtons.push_back(clearButton.getButton());
+        displayButtons.push_back(searchButton.getButton());
 
-        sf::Text startTileText = startTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE);
-        sf::Text goalTileText = goalTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE);
-        sf::Text blockerTileText = blockerTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE);
-        sf::Text randomBlockerText = randomBlockerButton.getText(ARIAL_FONT, BLACK, FONT_SIZE);
-        sf::Text eraseText = eraseButton.getText(ARIAL_FONT, BLACK, FONT_SIZE);
-        sf::Text clearText = clearButton.getText(ARIAL_FONT, BLACK, FONT_SIZE);
-        sf::Text searchText = searchButton.getText(ARIAL_FONT, BLUE, FONT_SIZE);
+        vector<sf::Text> buttonText;
+        buttonText.push_back(startTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(goalTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(blockerTileButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(randomBlockerButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(eraseButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(clearButton.getText(ARIAL_FONT, BLACK, FONT_SIZE));
+        buttonText.push_back(searchButton.getText(ARIAL_FONT, BLUE, FONT_SIZE));
 
         window.clear(WHITE);
 
-        window.draw(startTileButtonRect);
-        window.draw(goalTileButtonRect);
-        window.draw(blockerTileButtonRect);
-        window.draw(randomBlockerButtonRect);
-        window.draw(eraseButtonRect);
-        window.draw(clearButtonRect);
-        window.draw(searchButtonRect);
-
-        window.draw(startTileText);
-        window.draw(goalTileText);
-        window.draw(blockerTileText);
-        window.draw(randomBlockerText);
-        window.draw(eraseText);
-        window.draw(clearText);
-        window.draw(searchText);
-
-        for (int i = 0; i < tiles->getTiles().size(); i++) {
-            for (int j = 0; j < tiles->getTiles().at(i).size(); j++) {
-                window.draw(tiles->getTiles().at(i).at(j)->tileRectangle());
-            }
+        for (int i = 0; i < displayButtons.size(); i++) {
+            window.draw(displayButtons.at(i));
         }
 
-        window.display();
+        for (int i = 0; i < buttonText.size(); i++) {
+            window.draw(buttonText.at(i));
+        }
+
+
+        if (currentSelection != SEARCH) {
+            tiles->drawTiles(window);
+            window.display();
+        } else {
+            if (startTile != nullptr && goalTile != nullptr) {
+                
+                node* finalNode = algorithmHandler.Astar(window, startTile, goalTile);
+                if (finalNode != nullptr) {
+                    algorithmHandler.displayPath(window, finalNode);
+                } else {
+                    algorithmHandler.displayFail(window);
+                    startTile->setColor(START_TILE_COLOR);
+                    goalTile->setColor(GOAL_TILE_COLOR);
+                    window.display();
+                }
+
+                startTile = nullptr;
+                goalTile = nullptr;
+
+                for (int i = 0; i < buttons.size(); i++) {
+                    buttons.at(i).setColor(WHITE);
+                    window.draw(buttons.at(i).getButton());
+                    window.draw(buttonText.at(i));
+                }
+                window.clear(WHITE);
+                window.display();
+                currentSelection = NO_SELECTION;
+                currentButtonSelection = nullptr;
+            }
+            
+        }
 
     }
 

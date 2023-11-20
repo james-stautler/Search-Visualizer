@@ -28,6 +28,10 @@ void button::setText(string text) {
     this->text = text;
 }
 
+void button::setColor(sf::Color color) {
+    this->currColor = color;
+}
+
 bool button::getState() {
     return this->state;
 }
