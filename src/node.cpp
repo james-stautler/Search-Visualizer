@@ -25,6 +25,10 @@ tile* node::getTile() {
     return this->nodeTile;
 }
 
+int node::getHeuristicScore() const {
+    return g;
+}
+
 int node::getScore() const {
     return (f + g);
 }

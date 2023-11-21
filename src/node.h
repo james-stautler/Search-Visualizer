@@ -20,6 +20,7 @@ class node {
         tile* getTile();
         node* getParent();
         int getScore() const;
+        int getHeuristicScore() const;
 };
 
 
